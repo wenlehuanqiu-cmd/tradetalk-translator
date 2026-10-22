@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a43">
 <meta name="description" content="TradeTalk Translator 外贸中英翻译助手原型">
-<title>TradeTalk Translator 0.1</title>
+<title>TradeTalk Translator 0.2</title>
 <style>
 :root{--navy:#102a43;--blue:#1769aa;--bg:#f3f6fa;--card:#fff;--ink:#172b4d;--muted:#61758a;--line:#dbe4ee;--green:#147d64;--amber:#8a5b00}
 *{box-sizing:border-box}
@@ -47,10 +47,10 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 </style>
 </head>
 <body>
-<header><div class="head"><div class="logo">⇄</div><div><h1>TradeTalk Translator</h1><p>外贸中英翻译助手 · Prototype 0.1</p></div></div></header>
+<header><div class="head"><div class="logo">⇄</div><div><h1>TradeTalk Translator</h1><p>外贸中英翻译助手 · 真实文字翻译测试版</p></div></div></header>
 <main>
   <section class="card">
-    <div class="row" style="justify-content:space-between;margin-bottom:10px"><h2 style="margin:0">双语翻译</h2><span class="status" id="serviceStatus">演示模式</span></div>
+    <div class="row" style="justify-content:space-between;margin-bottom:10px"><h2 style="margin:0">双语翻译</h2><span class="status" id="serviceStatus">翻译接口待测试</span></div>
     <div class="tabs" role="tablist" aria-label="翻译方向">
       <button class="active" id="tabEnZh" type="button">客户英语 → 中文</button>
       <button id="tabZhEn" type="button">我的中文 → 英语</button>
@@ -74,7 +74,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
       <div class="output" id="englishOutput">If you order 100 pieces, I can offer you a better price.</div>
       <div class="actions"><button class="primary" id="translateZhBtn" type="button">翻译成英语</button><button class="quiet" id="copyEnBtn" type="button">复制英文</button></div>
     </div>
-    <p class="small" id="translationNote">当前使用内置示例句进行演示。真实翻译 API 尚未接入。</p>
+    <p class="small" id="translationNote">已配置 Google Apps Script 翻译接口。首次使用前，请先按说明更新后台代码并重新部署。</p>
   </section>
 
   <section class="card">
@@ -93,9 +93,9 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
   <section class="card">
     <h2>隐私与数据说明</h2>
     <ul style="padding-left:20px;margin-bottom:10px">
-      <li>本原型不会主动把你输入的文本发送到服务器。</li>
+      <li>点击翻译时，输入文本会发送到配置的 Google Apps Script 翻译接口，以便生成译文。</li>
       <li>如果浏览器语音识别服务需要联网，语音处理可能由浏览器或其服务提供商完成；请先阅读相关服务的隐私政策。</li>
-      <li>当前没有账户系统、云端历史记录或已接入的翻译 API。</li>
+      <li>本网页不保存翻译历史；翻译请求由 Google Apps Script 处理，并受 Google 服务条款与配额限制。</li>
       <li>不要在测试中输入客户密码、银行卡资料、身份证件或其他敏感信息。</li>
       <li>录音或转录客户声音前，请先取得对方同意，并遵守当地法律和 WhatsApp 使用条款。</li>
     </ul>
@@ -106,16 +106,10 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
     <h2>开发者接入说明</h2>
     <p><b>语音识别接口（前端原型）</b></p>
     <p class="small">已尝试使用浏览器的 <code>SpeechRecognition / webkitSpeechRecognition</code>。这是浏览器能力，不是可靠的跨设备生产级服务。正式版本应封装为 SpeechProvider，并在服务端接入所选语音识别供应商。</p>
-    <p><b>翻译接口（尚未连接）</b></p>
-    <pre style="white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f7fa;border-radius:10px;padding:11px;font-size:12px">POST /api/translate
-{
-  "text": "What is your best price?",
-  "sourceLanguage": "en",
-  "targetLanguage": "zh"
-}</pre>
-    <p class="small">建议由服务端保存 API 密钥，前端不要硬编码密钥。返回格式可统一为 <code>{ "translatedText": "你的最低价格是多少？" }</code>。</p>
+    <p><b>翻译接口状态</b></p>
+    <p class="small">本测试版通过 Google Apps Script 的 JSONP GET 请求连接翻译服务。请先按照配套步骤更新后台 Code.gs 并重新部署。短文本测试最合适；不要发送密码、支付信息或其他敏感内容。</p>
   </section>
-  <footer>TradeTalk Translator 0.1 · 独立网页原型 · 非 WhatsApp 官方产品</footer>
+  <footer>TradeTalk Translator 0.2 · 独立网页测试版 · 非 WhatsApp 官方产品</footer>
 </main>
 <script>
 const $ = id => document.getElementById(id);
@@ -152,17 +146,39 @@ $("clearEnBtn").onclick=()=>{$("englishInput").value="";$("chineseOutput").textC
 $("clearZhBtn").onclick=()=>{$("chineseInput").value="";$("englishOutput").textContent=""};
 $("copyZhBtn").onclick=()=>copyText($("chineseOutput").textContent);
 $("copyEnBtn").onclick=()=>copyText($("englishOutput").textContent);
-$("translateEnBtn").onclick=()=>{
- const t=$("englishInput").value.trim();
- const found=examples.find(x=>x.en.toLowerCase()===t.toLowerCase());
- $("chineseOutput").textContent=found?found.zh:"当前尚未连接真实翻译服务。请使用示例句，或在部署后接入 POST /api/translate。";
- $("translationNote").textContent=found?"已匹配内置示例翻译；不是实时翻译 API。":"未匹配到内置示例。真实翻译服务尚未接入。";
-};
-$("translateZhBtn").onclick=()=>{
- const t=$("chineseInput").value.trim();
- const found=examples.find(x=>x.zhReply===t || x.zh===t);
- $("englishOutput").textContent=found?(found.enReply||found.en):"当前尚未连接真实翻译服务。请使用示例句，或在部署后接入 POST /api/translate。";
-};
+// Google Apps Script JSONP endpoint. This URL is specific to this TradeTalk project.
+const TRANSLATE_API_URL = "https://script.google.com/macros/s/AKfycbyvlsc6crPAF-M5BzQvAQ30zHEjZ6NhRhKfPk32CMVqBQazpm7OHBS7P3BlHrKLabGl/exec";
+function translateText(text, targetLang, outputId, buttonId){
+ const input=text.trim();
+ if(!input){$(outputId).textContent="请先输入要翻译的内容。";return;}
+ if(input.length>1500){$(outputId).textContent="单次建议不超过1500个字符，请分段翻译。";return;}
+ const button=$(buttonId);button.disabled=true;button.textContent="翻译中…";
+ $(outputId).textContent="正在翻译，请稍候…";
+ $("translationNote").textContent="正在连接 Google 翻译服务……";
+ const callbackName="tradeTalkCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
+ const script=document.createElement("script");
+ let finished=false;
+ const cleanup=()=>{if(finished)return;finished=true;button.disabled=false;button.textContent=buttonId==="translateEnBtn"?"翻译成中文":"翻译成英语";script.remove();try{delete window[callbackName]}catch(e){window[callbackName]=undefined;}};
+ const timer=setTimeout(()=>{if(finished)return;$(outputId).textContent="连接超时。请稍后重试；如果持续失败，请检查 Apps Script 部署。";$("translationNote").textContent="翻译服务暂时没有返回结果。";cleanup();},20000);
+ window[callbackName]=data=>{
+   clearTimeout(timer);
+   if(data&&data.success&&typeof data.translatedText==="string"){
+     $(outputId).textContent=data.translatedText;
+     $("serviceStatus").textContent="翻译服务已响应";
+     $("translationNote").textContent="已通过 Google Apps Script 返回真实翻译。服务可用性和额度由 Google 决定。";
+   }else{
+     $(outputId).textContent=(data&&data.error)?"翻译失败："+data.error:"翻译失败，请稍后重试。";
+     $("translationNote").textContent="后台返回错误。请确认 Apps Script 已更新为 JSONP 版本并重新部署。";
+   }
+   cleanup();
+ };
+ script.onerror=()=>{clearTimeout(timer);$(outputId).textContent="无法连接翻译服务。请检查后台代码是否已更新并重新部署。";$("translationNote").textContent="未能加载翻译接口响应。";cleanup();};
+ const params=new URLSearchParams({text:input,target:targetLang,callback:callbackName});
+ script.src=TRANSLATE_API_URL+"?"+params.toString();
+ document.body.appendChild(script);
+}
+$("translateEnBtn").onclick=()=>translateText($("englishInput").value,"zh-CN","chineseOutput","translateEnBtn");
+$("translateZhBtn").onclick=()=>translateText($("chineseInput").value,"en","englishOutput","translateZhBtn");
 function startRecognition(lang,target){
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!SR){$("speechStatus").textContent="当前浏览器没有提供 Web Speech 语音识别接口。可先粘贴文字测试，或后续接入服务端语音识别。";return}
