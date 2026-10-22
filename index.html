@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#102a43">
+<meta name="description" content="TradeTalk Translator 外贸中英翻译助手原型">
+<title>TradeTalk Translator 0.1</title>
+<style>
+:root{--navy:#102a43;--blue:#1769aa;--bg:#f3f6fa;--card:#fff;--ink:#172b4d;--muted:#61758a;--line:#dbe4ee;--green:#147d64;--amber:#8a5b00}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB",Arial,sans-serif;line-height:1.5}
+header{background:linear-gradient(135deg,#102a43,#1769aa);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 18px 22px}
+.head{max-width:760px;margin:auto;display:flex;align-items:center;gap:12px}
+.logo{width:48px;height:48px;border-radius:15px;background:#ffffff20;display:grid;place-items:center;font-size:25px;border:1px solid #ffffff55}
+h1{font-size:21px;margin:0;letter-spacing:.2px} header p{margin:3px 0 0;color:#dceafa;font-size:13px}
+main{max-width:760px;margin:0 auto;padding:16px 14px calc(30px + env(safe-area-inset-bottom));}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 4px 16px #16324b08}
+.card h2{font-size:17px;margin:0 0 12px}
+.row{display:flex;gap:9px;align-items:center}.row>*{min-width:0}
+.tabs{display:flex;background:#e8eef5;border-radius:12px;padding:4px;gap:4px;margin-bottom:14px}
+.tabs button{flex:1;border:0;border-radius:9px;padding:10px 7px;background:transparent;color:#42566c;font-weight:650;font-size:13px}
+.tabs button.active{background:#fff;color:var(--blue);box-shadow:0 1px 4px #102a4314}
+label{display:block;font-size:13px;font-weight:650;color:#43566b;margin:10px 0 6px}
+textarea,input,select{width:100%;font:inherit;border:1px solid #cbd7e3;border-radius:11px;background:#fff;padding:12px;color:var(--ink);outline:none}
+textarea:focus,input:focus,select:focus{border-color:#4a90d9;box-shadow:0 0 0 3px #1769aa18}
+textarea{resize:vertical;min-height:95px}
+button{font:inherit;cursor:pointer}
+.primary,.secondary,.quiet{border-radius:11px;padding:11px 13px;font-weight:700;border:1px solid transparent}
+.primary{background:var(--blue);color:white}.secondary{background:#eaf3fb;color:#135a91;border-color:#cfe3f5}.quiet{background:white;color:#43566b;border-color:var(--line)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.actions button{flex:1}
+.output{background:#f4f8fc;border:1px solid #d9e7f4;border-radius:12px;padding:13px;min-height:68px;white-space:pre-wrap;overflow-wrap:anywhere}
+.small{font-size:12px;color:var(--muted)}
+.status{font-size:12px;border-radius:999px;background:#e8f5f0;color:var(--green);padding:5px 9px;display:inline-block}
+.warning{border-radius:12px;padding:12px;background:#fff6df;border:1px solid #f0dba5;color:#694900;font-size:13px}
+.info{border-radius:12px;padding:12px;background:#eef6ff;border:1px solid #d2e6fb;color:#244f75;font-size:13px}
+.grid{display:grid;grid-template-columns:1fr;gap:9px}
+.term{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff}
+.term .en{font-weight:700}.term .zh{font-size:13px;color:var(--muted);margin-top:3px}
+.term .copy{float:right;border:0;background:#edf4fb;color:#1769aa;border-radius:8px;padding:5px 8px;font-size:12px}
+.pill{display:inline-block;font-size:11px;border-radius:999px;background:#edf2f7;color:#4d647a;padding:3px 7px;margin-bottom:5px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:8px}
+.hidden{display:none!important}
+hr{border:0;border-top:1px solid var(--line);margin:15px 0}
+@media(min-width:600px){main{padding-top:22px}.grid{grid-template-columns:1fr 1fr}.card{padding:19px}}
+</style>
+</head>
+<body>
+<header><div class="head"><div class="logo">⇄</div><div><h1>TradeTalk Translator</h1><p>外贸中英翻译助手 · Prototype 0.1</p></div></div></header>
+<main>
+  <section class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px"><h2 style="margin:0">双语翻译</h2><span class="status" id="serviceStatus">演示模式</span></div>
+    <div class="tabs" role="tablist" aria-label="翻译方向">
+      <button class="active" id="tabEnZh" type="button">客户英语 → 中文</button>
+      <button id="tabZhEn" type="button">我的中文 → 英语</button>
+    </div>
+    <div id="enZhPanel">
+      <label for="englishInput">英语原文 / 识别结果</label>
+      <textarea id="englishInput" placeholder="粘贴客户的英语，或尝试语音识别……">What is your best price for 100 cages?</textarea>
+      <div class="actions">
+        <button class="secondary" id="listenEnBtn" type="button">🎙️ 识别英语语音</button>
+        <button class="quiet" id="clearEnBtn" type="button">清空</button>
+      </div>
+      <label for="chineseOutput">中文翻译</label>
+      <div class="output" id="chineseOutput">100 个狗笼，你能给我的最低价格是多少？</div>
+      <div class="actions"><button class="primary" id="translateEnBtn" type="button">翻译成中文</button><button class="quiet" id="copyZhBtn" type="button">复制中文</button></div>
+    </div>
+    <div id="zhEnPanel" class="hidden">
+      <label for="chineseInput">你想表达的中文</label>
+      <textarea id="chineseInput" placeholder="例如：如果你订购 100 个，我可以给你更优惠的价格。">如果你订购 100 个，我可以给你更优惠的价格。</textarea>
+      <div class="actions"><button class="secondary" id="listenZhBtn" type="button">🎙️ 尝试识别中文语音</button><button class="quiet" id="clearZhBtn" type="button">清空</button></div>
+      <label for="englishOutput">英文翻译</label>
+      <div class="output" id="englishOutput">If you order 100 pieces, I can offer you a better price.</div>
+      <div class="actions"><button class="primary" id="translateZhBtn" type="button">翻译成英语</button><button class="quiet" id="copyEnBtn" type="button">复制英文</button></div>
+    </div>
+    <p class="small" id="translationNote">当前使用内置示例句进行演示。真实翻译 API 尚未接入。</p>
+  </section>
+
+  <section class="card">
+    <h2>语音识别测试</h2>
+    <div class="info">在支持 Web Speech API 的浏览器中，可尝试将你对着 iPhone 麦克风说的话转成文字。iOS Safari 的支持情况可能随系统版本、浏览器权限和网络环境变化。</div>
+    <p class="small" id="speechStatus" aria-live="polite">尚未启动麦克风。请在弹出系统权限提示时选择允许。</p>
+    <div class="warning">重要限制：此麦克风功能只尝试识别本网页能收到的麦克风声音，不能直接读取 WhatsApp 内部通话音频，也不能保证在 WhatsApp 通话期间后台运行。</div>
+  </section>
+
+  <section class="card">
+    <h2>外贸常用词库</h2>
+    <input id="glossarySearch" type="search" placeholder="搜索英文或中文，例如 wholesale、运费">
+    <div class="grid" id="glossaryList" style="margin-top:11px"></div>
+  </section>
+
+  <section class="card">
+    <h2>隐私与数据说明</h2>
+    <ul style="padding-left:20px;margin-bottom:10px">
+      <li>本原型不会主动把你输入的文本发送到服务器。</li>
+      <li>如果浏览器语音识别服务需要联网，语音处理可能由浏览器或其服务提供商完成；请先阅读相关服务的隐私政策。</li>
+      <li>当前没有账户系统、云端历史记录或已接入的翻译 API。</li>
+      <li>不要在测试中输入客户密码、银行卡资料、身份证件或其他敏感信息。</li>
+      <li>录音或转录客户声音前，请先取得对方同意，并遵守当地法律和 WhatsApp 使用条款。</li>
+    </ul>
+    <div class="warning">本网页不是 WhatsApp 官方产品。它不会绕过 iOS 权限，也不会自动录制或截取 WhatsApp 通话。</div>
+  </section>
+
+  <section class="card">
+    <h2>开发者接入说明</h2>
+    <p><b>语音识别接口（前端原型）</b></p>
+    <p class="small">已尝试使用浏览器的 <code>SpeechRecognition / webkitSpeechRecognition</code>。这是浏览器能力，不是可靠的跨设备生产级服务。正式版本应封装为 SpeechProvider，并在服务端接入所选语音识别供应商。</p>
+    <p><b>翻译接口（尚未连接）</b></p>
+    <pre style="white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f7fa;border-radius:10px;padding:11px;font-size:12px">POST /api/translate
+{
+  "text": "What is your best price?",
+  "sourceLanguage": "en",
+  "targetLanguage": "zh"
+}</pre>
+    <p class="small">建议由服务端保存 API 密钥，前端不要硬编码密钥。返回格式可统一为 <code>{ "translatedText": "你的最低价格是多少？" }</code>。</p>
+  </section>
+  <footer>TradeTalk Translator 0.1 · 独立网页原型 · 非 WhatsApp 官方产品</footer>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let direction = "en-zh";
+const examples = [
+ {en:"What is your best price for 100 cages?",zh:"100 个狗笼，你能给我的最低价格是多少？",enReply:"If you order 100 pieces, I can offer you a better price.",zhReply:"如果你订购 100 个，我可以给你更优惠的价格。"},
+ {en:"Can you customize the size and add our company logo?",zh:"你们可以定制尺寸并添加我们公司的 Logo 吗？",enReply:"Yes, we can customize the size and add your company logo.",zhReply:"可以，我们能够定制尺寸并添加贵公司的 Logo。"},
+ {en:"How much is the shipping to Lagos, Nigeria?",zh:"运送到尼日利亚拉各斯需要多少运费？",enReply:"Please share the quantity and delivery address so I can check the shipping cost.",zhReply:"请提供数量和收货地址，我来核算运费。"},
+ {en:"We need 200 pieces for our first order.",zh:"我们的首批订单需要 200 个。",enReply:"Thank you. I will prepare a quotation for 200 pieces.",zhReply:"谢谢，我会为 200 个产品准备报价。"}
+];
+const glossary = [
+ ["Wholesale only","只做批发","销售方式"],["Pet cage manufacturer","宠物笼生产厂家","工厂介绍"],["Wire folding dog cage","铁丝折叠狗笼","产品"],["Square-tube dog cage","方管狗笼","产品"],["Custom size","定制尺寸","定制"],["Private label","贴牌 / 自有品牌","定制"],["Company logo","公司标志","定制"],["Quantity","数量","订单"],["Best price","最优惠价格","报价"],["Quotation","报价单","报价"],["Sample","样品","订单"],["Lead time","生产交期","交付"],["Shipping cost","运费","物流"],["Freight forwarder","货运代理","物流"],["FOB","船上交货（指定装运港）","贸易条款"],["EXW","工厂交货","贸易条款"],["Payment terms","付款条件","付款"],["Deposit","定金","付款"],["Container load","整柜装货","物流"],["Galvanized steel wire","镀锌钢丝","材料"],["Powder coating","粉末喷塑","材料"],["Foldable","可折叠的","产品"],["Carton packaging","纸箱包装","包装"],["Please confirm the dimensions.","请确认尺寸。","常用句"],["What quantity do you need?","您需要多少数量？","常用句"]
+];
+function renderGlossary(){
+ const q=$("glossarySearch").value.trim().toLowerCase();
+ $("glossaryList").innerHTML="";
+ glossary.filter(x=>x.join(" ").toLowerCase().includes(q)).forEach(x=>{
+   const el=document.createElement("div");el.className="term";
+   const btn=document.createElement("button");btn.className="copy";btn.textContent="复制英文";btn.onclick=()=>copyText(x[0]);
+   const en=document.createElement("div");en.className="en";en.textContent=x[0];
+   const zh=document.createElement("div");zh.className="zh";zh.textContent=x[1]+" · "+x[2];
+   el.append(btn,en,zh);$("glossaryList").appendChild(el);
+ });
+}
+function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>alert("已复制")).catch(()=>fallbackCopy(t));}else fallbackCopy(t)}
+function fallbackCopy(t){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");alert("已复制")}catch(e){alert("复制失败，请手动复制")}a.remove()}
+function setDirection(d){
+ direction=d;$("tabEnZh").classList.toggle("active",d==="en-zh");$("tabZhEn").classList.toggle("active",d==="zh-en");
+ $("enZhPanel").classList.toggle("hidden",d!=="en-zh");$("zhEnPanel").classList.toggle("hidden",d!=="zh-en");
+}
+$("tabEnZh").onclick=()=>setDirection("en-zh");$("tabZhEn").onclick=()=>setDirection("zh-en");
+$("glossarySearch").addEventListener("input",renderGlossary);
+$("clearEnBtn").onclick=()=>{$("englishInput").value="";$("chineseOutput").textContent=""};
+$("clearZhBtn").onclick=()=>{$("chineseInput").value="";$("englishOutput").textContent=""};
+$("copyZhBtn").onclick=()=>copyText($("chineseOutput").textContent);
+$("copyEnBtn").onclick=()=>copyText($("englishOutput").textContent);
+$("translateEnBtn").onclick=()=>{
+ const t=$("englishInput").value.trim();
+ const found=examples.find(x=>x.en.toLowerCase()===t.toLowerCase());
+ $("chineseOutput").textContent=found?found.zh:"当前尚未连接真实翻译服务。请使用示例句，或在部署后接入 POST /api/translate。";
+ $("translationNote").textContent=found?"已匹配内置示例翻译；不是实时翻译 API。":"未匹配到内置示例。真实翻译服务尚未接入。";
+};
+$("translateZhBtn").onclick=()=>{
+ const t=$("chineseInput").value.trim();
+ const found=examples.find(x=>x.zhReply===t || x.zh===t);
+ $("englishOutput").textContent=found?(found.enReply||found.en):"当前尚未连接真实翻译服务。请使用示例句，或在部署后接入 POST /api/translate。";
+};
+function startRecognition(lang,target){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){$("speechStatus").textContent="当前浏览器没有提供 Web Speech 语音识别接口。可先粘贴文字测试，或后续接入服务端语音识别。";return}
+ try{
+  const rec=new SR();rec.lang=lang;rec.interimResults=true;rec.continuous=false;
+  $("speechStatus").textContent="正在请求麦克风权限并识别……";
+  rec.onresult=e=>{let finalText="",interim="";for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)finalText+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript}
+   const value=finalText||interim;if(value){$(target).value=value;$("speechStatus").textContent=finalText?"识别完成。请检查文字后再翻译。":"正在识别："+interim}}
+  rec.onerror=e=>{$("speechStatus").textContent="语音识别未成功："+e.error+"。请检查权限、网络和浏览器支持。"};
+  rec.onend=()=>{if($("speechStatus").textContent.includes("正在请求"))$("speechStatus").textContent="识别已结束。"};
+  rec.start();
+ }catch(e){$("speechStatus").textContent="无法启动识别。请确认网页使用 HTTPS、允许麦克风，并检查浏览器支持。"}
+}
+$("listenEnBtn").onclick=()=>startRecognition("en-US","englishInput");
+$("listenZhBtn").onclick=()=>startRecognition("zh-CN","chineseInput");
+renderGlossary();
+</script>
+</body>
+</html>
